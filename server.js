@@ -27,11 +27,12 @@ app.get('/api/cities', async (req, res) => {
             throw new Error(`Response status: ${response.status}`)
         }
         const result = await response.json()
-        //const lat = result.results[2].latitude
-        //const long = result.results[3].longitude
-        
-        //res.json({lat}, {long})
-        res.json(result)
+        const lat = result.results[0].latitude
+        const long = result.results[0].longitude
+        const cords = [lat, long]
+        console.log(lat)
+        console.log(long)
+        res.send({cords})
 
     } catch (error) {
         console.error(error.message)
@@ -41,7 +42,9 @@ app.get('/api/cities', async (req, res) => {
 
 //passing data using the body not possible using browser postman 
 //pros and cons of query and body 
-//pain point '
+//pain point 
+
+
 app.post('/api/weather', async (req, res) => {
     const data = req.body
     const latu = data.results[0].latitude
