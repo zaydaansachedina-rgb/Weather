@@ -1,21 +1,37 @@
-const express = require('express')
+const express = require('express')  
 const app = express()
+const bodyParser = require('body-parser')
 const port = 3000
+app.use(bodyParser.json())
+
 
 app.get('/api/cities', async (req, res) => {    
-    const city = req.query.q 
-    const url = `https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(city)}`
-    console.log(url)
-
+    const city = req.query.city 
+   // let realCity = ""
+/*
+    for (let i = 0; i < city.length; i++){ // gets rid of all diffrent spaces in the 
+        if (city[i] !==" "){
+            realCity += city[i]
+        }
+    }
+*/
+    const url = `https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(city)}` //find something else for loop
+    console.log(city)
+    
+    if (city === undefined ){  //city was not inputted
+        console.log("No city!")
+    }
     try {
         const response = await fetch(url)
         if (!response.ok) {
             throw new Error(`Response status: ${response.status}`)
         }
         const result = await response.json()
-        const cityName = result.results[1].name
+        //const lat = result.results[2].latitude
+        //const long = result.results[3].longitude
         
-        res.json({cityName})
+        //res.json({lat}, {long})
+        res.json(result)
 
     } catch (error) {
         console.error(error.message)
@@ -23,8 +39,34 @@ app.get('/api/cities', async (req, res) => {
     }
 })
 
+//passing data using the body not possible using browser postman 
+//pros and cons of query and body 
+//pain point '
+app.post('/api/weather', async (req, res) => {
+    const data = req.body
+    const latu = data.results[0].latitude
+    const longu = data.results[0].longitude
+    const weatherUrl = `https://api.open-meteo.com/v1/forecast?latitude=${encodeURIComponent(latu)}&longitude=${encodeURIComponent(longu)}&hourly=temperature_2m`
+    try {
+        const anwser = await fetch(weatherUrl)
 
-app.get('/api/weather/:lat/:long', async (req, res) => {
+        if (!anwser.ok){
+            throw new Error(`Response status: ${anwser.status}`)
+        }
+
+        const entry = await anwser.json()
+        const weather = entry.hourly.temperature_2m[0]
+        res.json({weather})
+
+    } catch(error){
+        console.error(error.message)
+    }
+
+
+})
+
+/*
+app.get('/api/weather/:lat/:long', async (req, res) => { 
     const long = req.params.long
     const lat = req.params.lat
     const weatherUrl = `https://api.open-meteo.com/v1/forecast?latitude=${encodeURIComponent(lat)}&longitude=${encodeURIComponent(long)}&hourly=temperature_2m`
@@ -43,7 +85,7 @@ app.get('/api/weather/:lat/:long', async (req, res) => {
 
     }
 })
-
+*/
 app.listen(port, () => {
     console.log(`Server is running on http://localhost:${port}`)
 })
