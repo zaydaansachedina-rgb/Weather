@@ -1,0 +1,6 @@
+CREATE TABLE favourites(
+    ID INT PRIMARY KEY AUTO_INCREMENT, 
+    CityName VARCHAR(700) NOT NULL,
+    Longitude DECIMAL (10,10) NOT NULL,
+    Latitude DECIMAL (10,10) NOT NULL
+)
