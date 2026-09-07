@@ -2,7 +2,51 @@ const express = require('express')
 const app = express()
 const bodyParser = require('body-parser')
 const port = 3000
+const Database = require('better-sqlite3');
 app.use(bodyParser.json())
+const db = new Database('weatherapp.db')
+
+const fs = require('fs')
+
+
+const schemaPath = `${__dirname}/schema.sql`//allows to find the file name schema.sql
+const schemaSql = fs.readFileSync(schemaPath, 'utf8')// converst the file into readavle text not binary 
+db.exec(schemaSql)//excutes the file
+
+
+app.post('/api/favourites', (req, res) => {
+    const {id, name, latitude, longitude} = req.body 
+    if (!id || !name || !latitude || !longitude){
+        return res.status(400).json("missing the required fields")
+
+    }
+    try{
+        const stmt = db.prepare('INSERT INTO favourites (id, CityName, Longitude, Latitude) VALUES (?, ?, ?, ?)')
+        stmt.run(id, name, longitude, latitude)
+        res.status(201).json("Sent succesfully")
+        console.log("sent favourite succesfully")
+
+    }catch(error){
+        console.error(error.message)
+        res.send(error.message)
+    }
+
+})
+
+
+app.get('/api/favourites', (req, res) => {
+    try{
+        const stmt = db.prepare('SELECT * FROM favourites ORDER BY AddDate DESC')
+        const favoritesList = stmt.all()
+        res.json(favoritesList)
+
+    }catch(error){
+        console.error(error.message)
+        res.send(error.message)
+    }  
+})
+
+
 
 
 app.get('/api/cities', async (req, res) => {    
@@ -40,11 +84,7 @@ app.get('/api/cities', async (req, res) => {
     }
 })
 
-//passing data using the body not possible using browser postman 
-//pros and cons of query and body 
-//pain point 
-
-
+//passing data using the body not possin
 app.post('/api/weather', async (req, res) => {
     const data = req.body
     const latu = data.results[0].latitude
@@ -67,7 +107,19 @@ app.post('/api/weather', async (req, res) => {
 
 
 })
+app.delete('/api/favourites/:id', (req, res) => {
+    const id = req.params.id
+    try {
+       const stmt =  db.prepare('DELETE FROM favourites WHERE ID = ?')
+       stmt.run(id)
+       res.status(201).json("deleted succesfully")
+    }catch(error){
+        console.error(error.message)
+        res.send(error.message)
+    }
 
+
+})
 /*
 app.get('/api/weather/:lat/:long', async (req, res) => { 
     const long = req.params.long
@@ -92,3 +144,4 @@ app.get('/api/weather/:lat/:long', async (req, res) => {
 app.listen(port, () => {
     console.log(`Server is running on http://localhost:${port}`)
 })
+

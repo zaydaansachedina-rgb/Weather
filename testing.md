@@ -31,3 +31,71 @@ InputFields       : {}
 Links             : {}
 ParsedHtml        : mshtml.HTMLDocumentClass
 RawContentLength  : 11
+PS C:\Users\rizsa> curl "http://localhost:3000/api/cities?q=toronto"
+
+
+StatusCode        : 200
+StatusDescription : OK
+Content           : {"cityName":"Toronto"}
+RawContent        : HTTP/1.1 200 OK
+                    Connection: keep-alive
+                    Keep-Alive: timeout=5
+                    Content-Length: 22
+                    Content-Type: application/json; charset=utf-8
+                    Date: Wed, 02 Sep 2026 13:38:54 GMT
+                    ETag: W/"16-zSdveYBuPD3g5xZo+H0G...
+Forms             : {}
+Headers           : {[Connection, keep-alive], [Keep-Alive, timeout=5], [Content-Length, 22], [Content-Type,
+                    application/json; charset=utf-8]...}
+Images            : {}
+InputFields       : {}
+Links             : {}
+ParsedHtml        : mshtml.HTMLDocumentClass
+RawContentLength  : 22
+
+
+
+PS C:\Users\rizsa> curl "http://localhost:3000/api/weather/43.70643/-79.39864"
+
+
+StatusCode        : 200
+StatusDescription : OK
+Content           : {"weather":20.5}
+RawContent        : HTTP/1.1 200 OK
+                    Connection: keep-alive
+                    Keep-Alive: timeout=5
+                    Content-Length: 16
+                    Content-Type: application/json; charset=utf-8
+                    Date: Wed, 02 Sep 2026 16:41:23 GMT
+                    ETag: W/"10-b3LmorHHQMfvPWRU69Vz...
+Forms             : {}
+Headers           : {[Connection, keep-alive], [Keep-Alive, timeout=5], [Content-Length, 16], [Content-Type,
+                    application/json; charset=utf-8]...}
+Images            : {}
+InputFields       : {}
+Links             : {}
+ParsedHtml        : mshtml.HTMLDocumentClass
+RawContentLength  : 16
+
+
+PS C:\Users\rizsa> curl "http://localhost:3000/api/weather/43.70643/-79.39864"
+
+
+StatusCode        : 200
+StatusDescription : OK
+Content           : {"weather":20.5}
+RawContent        : HTTP/1.1 200 OK
+                    Connection: keep-alive
+                    Keep-Alive: timeout=5
+                    Content-Length: 16
+                    Content-Type: application/json; charset=utf-8
+                    Date: Wed, 02 Sep 2026 16:41:23 GMT
+                    ETag: W/"10-b3LmorHHQMfvPWRU69Vz...
+Forms             : {}
+Headers           : {[Connection, keep-alive], [Keep-Alive, timeout=5], [Content-Length, 16], [Content-Type,
+                    application/json; charset=utf-8]...}
+Images            : {}
+InputFields       : {}
+Links             : {}
+ParsedHtml        : mshtml.HTMLDocumentClass
+RawContentLength  : 16
