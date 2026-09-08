@@ -11,8 +11,21 @@ const fs = require('fs')
 
 const schemaPath = `${__dirname}/schema.sql`//allows to find the file name schema.sql
 const schemaSql = fs.readFileSync(schemaPath, 'utf8')// converst the file into readavle text not binary 
+//console.log(schemaSql)
 db.exec(schemaSql)//excutes the file
 
+app.get('/api/searchhistory', (req, res) =>{
+    try{
+        const stmt = db.prepare('SELECT * FROM Searchhistory ORDER BY city DESC LIMIT 20')
+        const search = stmt.all()
+        res.json(search)
+
+    }catch(error){
+        console.error(error.message)
+        res.send(error.message)
+    }
+    
+})
 
 app.post('/api/favourites', (req, res) => {
     const {id, name, latitude, longitude} = req.body 
@@ -71,12 +84,17 @@ app.get('/api/cities', async (req, res) => {
             throw new Error(`Response status: ${response.status}`)
         }
         const result = await response.json()
+        const cityName = result.results[0].name
+     
         const lat = result.results[0].latitude
         const long = result.results[0].longitude
         const cords = [lat, long]
         console.log(lat)
         console.log(long)
         res.send({cords})
+        const stmt = db.prepare('INSERT INTO Searchhistory (City, LongitudeSearch, LatitudeSearch) VALUES (?, ?, ?)')
+        stmt.run(cityName, long, lat)
+        console.log("Search history saved")
 
     } catch (error) {
         console.error(error.message)
