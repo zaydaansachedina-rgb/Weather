@@ -34,7 +34,7 @@ app.post('/api/favourites', (req, res) => {
 
     }
     try{
-        const stmt = db.prepare('INSERT INTO favourites (id, CityName, Longitude, Latitude) VALUES (?, ?, ?, ?)')
+        const stmt = db.prepare('INSERT INTO favourites (id, CityName, Longitude, Latitude) VALUES (?, ?, ?, ?)') //propmt injection 
         stmt.run(id, name, longitude, latitude)
         res.status(201).json("Sent succesfully")
         console.log("sent favourite succesfully")
@@ -61,17 +61,9 @@ app.get('/api/favourites', (req, res) => {
 
 
 
-
+//diffrent layers where we can cache - cache in memory at the chache has to exxist at a diffrent layer cache has to be accescible caching from databse level cache  
 app.get('/api/cities', async (req, res) => {    
     const city = req.query.city 
-   // let realCity = ""
-/*
-    for (let i = 0; i < city.length; i++){ // gets rid of all diffrent spaces in the 
-        if (city[i] !==" "){
-            realCity += city[i]
-        }
-    }
-*/
     const url = `https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(city)}` //find something else for loop
     console.log(city)
     
@@ -93,7 +85,9 @@ app.get('/api/cities', async (req, res) => {
         console.log(long)
         res.send({cords})
         const stmt = db.prepare('INSERT INTO Searchhistory (City, LongitudeSearch, LatitudeSearch) VALUES (?, ?, ?)')
+        
         stmt.run(cityName, long, lat)
+       
         console.log("Search history saved")
 
     } catch (error) {
@@ -102,7 +96,12 @@ app.get('/api/cities', async (req, res) => {
     }
 })
 
+
+
 //passing data using the body not possin
+// method signugture: post = name parameters = string, function  
+//
+/*
 app.post('/api/weather', async (req, res) => {
     const data = req.body
     const latu = data.results[0].latitude
@@ -125,6 +124,7 @@ app.post('/api/weather', async (req, res) => {
 
 
 })
+*/
 app.delete('/api/favourites/:id', (req, res) => {
     const id = req.params.id
     try {
@@ -138,27 +138,42 @@ app.delete('/api/favourites/:id', (req, res) => {
 
 
 })
-/*
+
+
+
 app.get('/api/weather/:lat/:long', async (req, res) => { 
     const long = req.params.long
     const lat = req.params.lat
-    const weatherUrl = `https://api.open-meteo.com/v1/forecast?latitude=${encodeURIComponent(lat)}&longitude=${encodeURIComponent(long)}&hourly=temperature_2m`
-    console.log(weatherUrl)
-    try { 
-        const anwser = await fetch(weatherUrl)
-        if (!anwser.ok) {
-            throw new Error(`Response status: ${anwser.status}`)
+    const stmt = db.prepare(`SELECT * FROM Cache_database WHERE LongitudeSearch = ? AND LatitudeSearch = ? AND created_at >= datetime('now', '-10 minutes')`)
+    const row = stmt.get(long, lat)
+    if (row == undefined){
+        const weatherUrl = `https://api.open-meteo.com/v1/forecast?latitude=${encodeURIComponent(lat)}&longitude=${encodeURIComponent(long)}&hourly=temperature_2m`
+        console.log(weatherUrl)
+        try { 
+            const anwser = await fetch(weatherUrl)
+            if (!anwser.ok) {
+                throw new Error(`Response status: ${anwser.status}`)
+            }
+         const data = await anwser.json()
+         const weather = data.hourly.temperature_2m[0]
+         res.json({weather})
+         console.log("cache:false")
+         const stmnt = db.prepare('INSERT INTO Cache_database (Weather, LongitudeSearch, LatitudeSearch) VALUES (?, ?, ?)')
+         stmnt.run(weather, long, lat)
+        }catch(error){
+            console.error(error.message)
+
         }
-        const data = await anwser.json()
-        const weather = data.hourly.temperature_2m[0]
-        res.json({weather})
-
-     } catch(error){
-        console.error(error.message)
-
+    }else{
+        console.log("cached:true")
+        res.json({weather: row.Weather, cached: true})
     }
+
+    
+
+    
 })
-*/
+
 app.listen(port, () => {
     console.log(`Server is running on http://localhost:${port}`)
 })
