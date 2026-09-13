@@ -27,20 +27,30 @@ const MOCK_HISTORY = [
 // ─────────────────────────────────────────────────────────────
 // Search field + results dropdown
 // ─────────────────────────────────────────────────────────────
-function CitySearch({ query, setQuery, results, onPick, isSearching, error }) {
+function CitySearch({ query, setQuery, results, onPick, isSearching, error, setResults }) {
   const [isOpen, setIsOpen] = useState(false)
 
-  function handleChange(e) {
+  async function handleChange(e) {
     setQuery(e.target.value)
     setIsOpen(true)
+    const response = await fetch(`http://localhost:3000/api/cities?city=${e.target.value}`);
+    console.log(response) 
+    const data = await response.json()
+    const results = data.results
+    setResults(results)
+  
+    console.log(data)
     // TODO (you wire this): call GET /api/cities?q=<value> here.
     // Consider debouncing so you don't fire a request per keystroke.
   }
 
-  function handlePick(city) {
+  async function handlePick (city) {
     onPick(city)
     setQuery(city.name)
     setIsOpen(false)
+    
+    
+
   }
 
   const showDropdown = isOpen && query.trim().length > 0
@@ -287,6 +297,7 @@ export default function App() {
 
       <main className="main">
         <CitySearch
+          setResults={setResults}
           query={query}
           setQuery={setQuery}
           results={results}

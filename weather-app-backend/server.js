@@ -5,7 +5,8 @@ const port = 3000
 const Database = require('better-sqlite3');
 app.use(bodyParser.json())
 const db = new Database('weatherapp.db')
-
+const cors = require('cors')
+app.use(cors())
 const fs = require('fs')
 
 
@@ -76,14 +77,17 @@ app.get('/api/cities', async (req, res) => {
             throw new Error(`Response status: ${response.status}`)
         }
         const result = await response.json()
+        console.log(result)
         const cityName = result.results[0].name
-     
+        const id = result.results[0].id
         const lat = result.results[0].latitude
         const long = result.results[0].longitude
-        const cords = [lat, long]
+        const country = result.results[0].country
+        const admin1 = result.results[0].admin1
+        const results = [{'id': id, 'name': cityName, 'admin1': admin1,'country': country, 'latitude': lat, 'longitude': long}]
         console.log(lat)
         console.log(long)
-        res.send({cords})
+        res.send({results})
         const stmt = db.prepare('INSERT INTO Searchhistory (City, LongitudeSearch, LatitudeSearch) VALUES (?, ?, ?)')
         
         stmt.run(cityName, long, lat)
