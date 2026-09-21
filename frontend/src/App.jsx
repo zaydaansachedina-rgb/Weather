@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useRef, useEffect} from 'react'
 import './App.css'
 
 // ─────────────────────────────────────────────────────────────
@@ -24,22 +24,26 @@ const MOCK_HISTORY = [
   { id: 10, City: 'Townsville', created_at: '2026-09-10 13:31:09' },
 ]
 
+
+
 // ─────────────────────────────────────────────────────────────
 // Search field + results dropdown
 // ─────────────────────────────────────────────────────────────
-function CitySearch({ query, setQuery, results, onPick, isSearching, error, setResults }) {
+function CitySearch({ query, setQuery, results, onPick, isSearching, error, setResults, setWeather }) {
   const [isOpen, setIsOpen] = useState(false)
+  const timeoutRef = useRef(null)
 
   async function handleChange(e) {
     setQuery(e.target.value)
     setIsOpen(true)
-    const response = await fetch(`http://localhost:3000/api/cities?city=${e.target.value}`);
-    console.log(response) 
-    const data = await response.json()
-    const results = data.results
-    setResults(results)
-  
-    console.log(data)
+    clearTimeout(timeoutRef.current)
+    timeoutRef.current = setTimeout(async () => { // more details about set timeout and how it relates to sync async
+      const response = await fetch(`http://localhost:3000/api/cities?city=${e.target.value}`)
+      console.log(response)
+      const data = await response.json()
+      const cityResults = data.results
+      setResults(cityResults)
+    }, 450)
     // TODO (you wire this): call GET /api/cities?q=<value> here.
     // Consider debouncing so you don't fire a request per keystroke.
   }
@@ -48,8 +52,17 @@ function CitySearch({ query, setQuery, results, onPick, isSearching, error, setR
     onPick(city)
     setQuery(city.name)
     setIsOpen(false)
-    
-    
+
+    const response = await fetch(`http://localhost:3000/api/weather/${city.latitude}/${city.longitude}`)
+    console.log(response)
+    const data = await response.json()
+    console.log(data)
+    const weatherResults = data.weather
+    console.log(weatherResults)
+    setWeather(data)
+
+
+
 
   }
 
@@ -245,7 +258,20 @@ export default function App() {
   const [history, setHistory] = useState(MOCK_HISTORY)
   const [panel, setPanel] = useState('favorites')
 
-  // TODO (you wire this): on mount, load GET /api/favorites and GET /api/history.
+  useEffect(() => {
+    async function loadFavorites() {
+      const response = await fetch('http://localhost:3000/api/favourites')
+      const data = await response.json()
+      setFavorites(data)
+    }
+    async function loadHistory() {
+      const response = await fetch('http://localhost:3000/api/searchhistory')
+      const data = await response.json()
+      setHistory(data)
+    }
+    loadFavorites()
+    loadHistory()
+    }, [])
 
   function handlePickCity(city) {
     setSelectedCity(city)
@@ -266,18 +292,33 @@ export default function App() {
     })
   }
 
-  function handleSaveFavorite(city) {
-    // TODO (you wire this): POST /api/favorites, then refresh the list
-    // from the server rather than trusting local state.
-    setFavorites((prev) => [
-      ...prev,
-      { id: Date.now(), CityName: city.name, Latitude: city.latitude, Longitude: city.longitude },
-    ])
+  async function handleSaveFavorite(city) {
+    const response = await fetch('http://localhost:3000/api/favourites', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        id: city.id,
+        name: city.name,
+        latitude: city.latitude,
+        longitude: city.longitude,
+      }),
+    })
+    console.log(response)
+
+    const favoritesResponse = await fetch('http://localhost:3000/api/favourites')
+    const data = await favoritesResponse.json()
+    setFavorites(data)
   }
 
-  function handleRemoveFavorite(id) {
-    // TODO (you wire this): DELETE /api/favorites/<id>, then refresh.
-    setFavorites((prev) => prev.filter((f) => f.id !== id))
+  async function handleRemoveFavorite(id) {
+    const response = await fetch(`http://localhost:3000/api/favourites/${id}`, {
+      method: 'DELETE',
+    })
+    console.log(response)
+
+    const favoritesResponse = await fetch('http://localhost:3000/api/favourites')
+    const data = await favoritesResponse.json()
+    setFavorites(data)
   }
 
   const isSaved = selectedCity
@@ -297,6 +338,7 @@ export default function App() {
 
       <main className="main">
         <CitySearch
+          setWeather={setWeather}
           setResults={setResults}
           query={query}
           setQuery={setQuery}

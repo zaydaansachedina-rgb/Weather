@@ -152,16 +152,17 @@ app.get('/api/weather/:lat/:long', async (req, res) => {
     const row = stmt.get(long, lat)
     if (row == undefined){
 
-        const weatherUrl = `https://api.open-meteo.com/v1/forecast?latitude=${encodeURIComponent(lat)}&longitude=${encodeURIComponent(long)}&hourly=temperature_2m`
+        const weatherUrl = `https://api.open-meteo.com/v1/forecast?latitude=${encodeURIComponent(lat)}&longitude=${encodeURIComponent(long)}&current=temperature_2m`
         console.log(weatherUrl)
         try { 
             const anwser = await fetch(weatherUrl)
             if (!anwser.ok) {
                 throw new Error(`Response status: ${anwser.status}`)
             }
-            
+
          const data = await anwser.json()
-         const weather = data.hourly.temperature_2m[0]
+         console.log(data)
+         const weather = data.current.temperature_2m
          res.json({weather})
          console.log("cache:false")
          const stmnt = db.prepare('INSERT INTO Cache_database (Weather, LongitudeSearch, LatitudeSearch) VALUES (?, ?, ?)')
@@ -183,4 +184,5 @@ app.get('/api/weather/:lat/:long', async (req, res) => {
 app.listen(port, () => {
     console.log(`Server is running on http://localhost:${port}`)
 })
+
 
